@@ -7,6 +7,8 @@
 
 #include "rdtsc.h"
 
+int clock_gettime(clockid_t, struct timespec *tp);
+
 #define USEC_IN_SEC (1000000)
 #define NSEC_IN_SEC (1000000000)
 
@@ -34,6 +36,7 @@ int subtract_tp(struct timeval *tp1, struct timeval *tp2, struct timeval *result
 
 void *busy_loop(void *args) {
 	while (true);
+	return NULL;
 }
 
 void print_time(struct timespec *tp) {
@@ -41,7 +44,7 @@ void print_time(struct timespec *tp) {
 }
 
 void print_rdtsc(unsigned long long to) {
-	printf("rdtsc:\t%llu\n", to);
+	printf("rdtsc:\t%e\n", (double) to);
 }
 
 int main(int argv, char **argc) {
@@ -62,7 +65,7 @@ int main(int argv, char **argc) {
 	rdtsc_times.start = rdtsc_start();
 	if (clock_gettime(CLOCK_HIGHRES, &real_times.start))
 		perror("clock_gettime");
-	sleep(10);
+	sleep(5);
 	rdtsc_times.end = rdtsc_end();
 	if (clock_gettime(CLOCK_HIGHRES, &real_times.end))
 		perror("clock_gettime");
