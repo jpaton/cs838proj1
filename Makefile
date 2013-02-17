@@ -1,18 +1,18 @@
 CC=gcc
 CFLAGS=-c -Wall -std=c99 -lpthread
 LDFLAGS=
-SOURCES=main.c
+SOURCES=timetest.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=timetest
+EXECUTABLES=timetest
 
-all: $(SOURCES) $(EXECUTABLE)
+all: $(SOURCES) $(EXECUTABLES)
 	
-$(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+timetest: timetest.o
+	$(CC) $(LDFLAGS) timetest.o -o $@
 
-.cpp.o:
+.c.o:
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	rm *.o
-	rm $(EXECUTABLE)
+	rm $(EXECUTABLES)
