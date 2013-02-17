@@ -80,7 +80,7 @@ int main(int argv, char **argc) {
                 if (clock_gettime(clocks[clock_num], &highres_times.end))
                     perror("clock_gettime");
                 subtract_timespec(&highres_times.end, &highres_times.start, &highres_diff);
-                printf("%d,%d,", trial, clocks[clock_num]);
+                printf("%d,%d,%d,", trial, sleep_time, clocks[clock_num]);
                 print_time(&highres_diff);
             }
         }
