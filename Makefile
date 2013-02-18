@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-c -Wall -std=c99 -lpthread
-LDFLAGS=
+LDFLAGS=-mt
 SOURCES=timetest.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLES=timetest

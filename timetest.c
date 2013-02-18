@@ -5,6 +5,7 @@
  **/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdbool.h>
@@ -17,7 +18,7 @@ int clock_getres(clockid_t, struct timespec *tp);
 #define USEC_IN_SEC (1000000)
 #define NSEC_IN_SEC (1000000000)
 #define NUM_TRIALS 1
-#define MAX_SLEEP_TIME 10 
+#define MAX_SLEEP_TIME 5 
 #define MIN_SLEEP_TIME 0
 #define SLEEP_TIME_STEP 5
 
@@ -38,13 +39,21 @@ int subtract_timespec(struct timespec *ts1, struct timespec *ts2, struct timespe
     return 0;
 }
 
-void *busy_loop(void *args) {
-    while (true);
-    return NULL;
+struct busy_loop_arg {
+    bool done;
+    pthread_mutex_t exiting_mutex;
+    pthread_cond_t exiting;
+};
+
+void *busy_loop(void *_args) {
+    struct busy_loop_arg *args = (struct busy_loop_arg *) _args;
+    while (!args->done);
+    fprintf(stderr, "busy loop exiting...\n");
+    pthread_exit(0);
 }
 
 void print_time(struct timespec *tp) {
-    printf("%lu s,%lu ns\n", tp->tv_sec, tp->tv_nsec);
+    printf("%lu s,%lu ns", tp->tv_sec, tp->tv_nsec);
 }
 
 void print_resolutions() {
@@ -56,23 +65,15 @@ void print_resolutions() {
     }
 }
 
-int main(int argv, char **argc) {
+void run_trials(char *extra) {
     struct {
         struct timespec start;
         struct timespec end;
     } highres_times;
     struct timespec highres_diff;
-    pthread_t busy_looper;
-
-    print_resolutions();
-
-    if (pthread_create(&busy_looper, NULL, busy_loop, NULL))
-        perror("pthread_create");
-    else
-        fprintf(stderr, "extra thread running...\n");
 
     for (int clock_num = 0; clock_num < NUM_CLOCKS; clock_num++) {
-        for (int sleep_time = 0; sleep_time <= MAX_SLEEP_TIME; sleep_time += SLEEP_TIME_STEP) {
+        for (int sleep_time = MIN_SLEEP_TIME; sleep_time <= MAX_SLEEP_TIME; sleep_time += SLEEP_TIME_STEP) {
             for (int trial = 0; trial < NUM_TRIALS; trial++) {
                 if (clock_gettime(clocks[clock_num], &highres_times.start))
                     perror("clock_gettime");
@@ -82,8 +83,39 @@ int main(int argv, char **argc) {
                 subtract_timespec(&highres_times.end, &highres_times.start, &highres_diff);
                 printf("%d,%d,%d,", trial, sleep_time, clocks[clock_num]);
                 print_time(&highres_diff);
+                printf(",%s\n", extra);
             }
         }
+    }
+}
+
+int main(int argc, char **argv) {
+    pthread_t busy_looper;
+    struct busy_loop_arg *args;
+
+    print_resolutions();
+
+    args = malloc(sizeof(struct busy_loop_arg));
+    pthread_cond_init(&args->exiting, NULL);
+    while (true) {
+        /**
+         * pthread with process contention
+         **/
+        args->done = false;
+        if (pthread_create(&busy_looper, NULL, busy_loop, args))
+            perror("pthread_create");
+        else
+            fprintf(stderr, "extra thread running...\n");
+
+        run_trials("pthread");
+
+        args->done = true;
+        pthread_join(busy_looper, NULL);
+
+        /**
+         * no pthread
+         **/
+        run_trials("no_pthread");
     }
 
     return 0;
