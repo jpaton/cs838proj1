@@ -11,9 +11,12 @@
 #include <stdbool.h>
 #include <time.h>
 #include <pthread.h>
+#include "rdtsc.h"
 
+#ifndef __APPLE__
 int clock_gettime(clockid_t, struct timespec *tp);
 int clock_getres(clockid_t, struct timespec *tp);
+#endif
 
 #define USEC_IN_SEC (1000000)
 #define NSEC_IN_SEC (1000000000)
@@ -21,12 +24,15 @@ int clock_getres(clockid_t, struct timespec *tp);
 #define MAX_SLEEP_TIME 60
 #define MIN_SLEEP_TIME 0
 #define SLEEP_TIME_STEP 5
+#define FREQ 2150000000l
 
 /**
  * A list of all the clocks to test with clock_gettime
  **/
+#ifndef __APPLE__
 const clockid_t clocks[] = {CLOCK_REALTIME, CLOCK_MONOTONIC};
 #define NUM_CLOCKS 2 /* size of the clocks array */
+#endif
 
 int subtract_timespec(struct timespec *ts1, struct timespec *ts2, struct timespec *result) {
     result->tv_sec = ts1->tv_sec - ts2->tv_sec;
@@ -56,6 +62,7 @@ void print_time(struct timespec *tp) {
     printf("%lu s,%lu ns", tp->tv_sec, tp->tv_nsec);
 }
 
+#ifndef __APPLE__
 void print_resolutions() {
     struct timespec tp;
     for (int clock_num = 0; clock_num < NUM_CLOCKS; clock_num++) {
@@ -64,7 +71,9 @@ void print_resolutions() {
         fprintf(stderr, "clock res for %d: %lu s, %lu ns\n", clocks[clock_num], tp.tv_sec, tp.tv_nsec);
     }
 }
+#endif
 
+#ifndef __APPLE__
 void run_trials(char *extra) {
     struct {
         struct timespec start;
@@ -88,15 +97,32 @@ void run_trials(char *extra) {
         }
     }
 }
+#endif
 
 void run_rdtsc_trials(char *extra) {
+    unsigned long long start, end;
+    double diff, time;
+
+    for (int sleep_time = MIN_SLEEP_TIME; sleep_time <= MAX_SLEEP_TIME; sleep_time += SLEEP_TIME_STEP) {
+        for (int trial = 0; trial < NUM_TRIALS; trial++) {
+            start = rdtsc_start();
+            sleep(sleep_time);
+            end = rdtsc_end();
+            diff = (double) (end - start);
+            time = diff / FREQ;
+            printf("%d,%d,%s,%f", trial, sleep_time, "rdtsc", time);
+            printf(",%s\n", extra);
+        }
+    }
 }
 
 int main(int argc, char **argv) {
     pthread_t busy_looper;
     struct busy_loop_arg *args;
 
+#ifndef __APPLE__
     print_resolutions();
+#endif
 
     args = malloc(sizeof(struct busy_loop_arg));
     pthread_cond_init(&args->exiting, NULL);
@@ -110,7 +136,7 @@ int main(int argc, char **argv) {
         else
             fprintf(stderr, "extra thread running...\n");
 
-        run_trials("pthread");
+        run_rdtsc_trials("pthread");
 
         args->done = true;
         pthread_join(busy_looper, NULL);
@@ -118,7 +144,7 @@ int main(int argc, char **argv) {
         /**
          * no pthread
          **/
-        run_trials("no_pthread");
+        run_rdtsc_trials("no_pthread");
     }
 
     return 0;
