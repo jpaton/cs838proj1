@@ -1,12 +1,15 @@
 CC=gcc
 CFLAGS=-c -Wall -std=c99 -lpthread
 LDFLAGS=-mt
-SOURCES=timetest.c
+SOURCES=timetest.c random_read.c util.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLES=timetest
+EXECUTABLES=timetest random_read
 
-all: $(SOURCES) $(EXECUTABLES)
+all: $(OBJECTS) $(EXECUTABLES)
 	
+random_read: random_read.o util.o
+	$(CC) $(LDFLAGS) util.o random_read.o -o $@
+
 timetest: timetest.o
 	$(CC) $(LDFLAGS) timetest.o -o $@
 

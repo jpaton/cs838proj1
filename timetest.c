@@ -17,8 +17,8 @@ int clock_getres(clockid_t, struct timespec *tp);
 
 #define USEC_IN_SEC (1000000)
 #define NSEC_IN_SEC (1000000000)
-#define NUM_TRIALS 1
-#define MAX_SLEEP_TIME 5 
+#define NUM_TRIALS 10
+#define MAX_SLEEP_TIME 60
 #define MIN_SLEEP_TIME 0
 #define SLEEP_TIME_STEP 5
 
@@ -87,6 +87,9 @@ void run_trials(char *extra) {
             }
         }
     }
+}
+
+void run_rdtsc_trials(char *extra) {
 }
 
 int main(int argc, char **argv) {
