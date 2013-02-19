@@ -3,6 +3,6 @@
 
 #define EXIT_ON_FAIL(val, msg) if (val) { perror(msg); exit(-1); }
 
-void setup_system(char *);
+void setup_system(char **);
 
 #endif

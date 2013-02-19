@@ -4,30 +4,31 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include "util.h"
 
-#define BUF_SIZE 4092
+#define BUF_SIZE 4096
 
 /**
  * Put the system into a known state by reading a file into memory
  **/
-void setup_system(char *filename) {
+void setup_system(char **filenames) {
   char buffer[BUF_SIZE];
   int fildes;
-  struct stat f_stat;
 
-  EXIT_ON_FAIL((fildes = open(filename, O_RDONLY)) == -1, "open");
 
-  EXIT_ON_FAIL(fstat(fildes, &f_stat), "fstat");
+  //EXIT_ON_FAIL(fstat(fildes, &f_stat), "fstat");
 
   /* read in the whole file to bring it into cache */
-  int bytes_read = 0;
-  while (bytes_read < f_stat.st_size) {
-    ssize_t read_size = read(fildes, buffer, BUF_SIZE);
-    EXIT_ON_FAIL(read_size == -1, "read");
-    bytes_read += read_size;
-    buffer[0] = buffer[1] + buffer[2];
+  for (int i = 0; i < 4; i++) {
+      EXIT_ON_FAIL((fildes = open(filenames[i], O_RDONLY)) == -1, "open");
+      while (true) {
+        ssize_t read_size = read(fildes, buffer, BUF_SIZE);
+        EXIT_ON_FAIL(read_size == -1, "read");
+        buffer[0] = buffer[1] + buffer[2]; //make sure nothing is optimized out or some BS
+        if (read_size == 0) break;
+      }
+      EXIT_ON_FAIL(close(fildes), "close");
   }
 
-  EXIT_ON_FAIL(close(fildes), "close");
 }
