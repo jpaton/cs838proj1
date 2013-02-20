@@ -33,6 +33,7 @@ void setup_system(int num_files, char **filenames) {
       }
       EXIT_ON_FAIL(close(fildes), "close");
   }
+  free(buffer);
 }
 
 int get_clock_frequency(void) {
