@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    setup_filenames = &argv[1];
-    test_filename = argv[2];
+    setup_filenames = &argv[2];
+    test_filename = argv[1];
 
     EXIT_ON_FAIL(stat(test_filename, &f_stat), "stat");
     file_size = f_stat.st_size;
