@@ -24,7 +24,7 @@ int clock_getres(clockid_t, struct timespec *tp);
 #define MAX_SLEEP_TIME 60
 #define MIN_SLEEP_TIME 0
 #define SLEEP_TIME_STEP 5
-#define FREQ 2150000000l
+#define FREQ 2533000000l
 
 /**
  * A list of all the clocks to test with clock_gettime
@@ -105,13 +105,14 @@ void run_rdtsc_trials(char *extra) {
 
     for (int sleep_time = MIN_SLEEP_TIME; sleep_time <= MAX_SLEEP_TIME; sleep_time += SLEEP_TIME_STEP) {
         for (int trial = 0; trial < NUM_TRIALS; trial++) {
-            start = rdtsc_start();
+            start = rdtsc();
             sleep(sleep_time);
-            end = rdtsc_end();
+            end = rdtsc();
             diff = (double) (end - start);
             time = diff / FREQ;
             printf("%d,%d,%s,%f", trial, sleep_time, "rdtsc", time);
             printf(",%s\n", extra);
+            fflush(stdout);
         }
     }
 }
@@ -126,26 +127,24 @@ int main(int argc, char **argv) {
 
     args = malloc(sizeof(struct busy_loop_arg));
     pthread_cond_init(&args->exiting, NULL);
-    while (true) {
-        /**
-         * pthread with process contention
-         **/
-        args->done = false;
-        if (pthread_create(&busy_looper, NULL, busy_loop, args))
-            perror("pthread_create");
-        else
-            fprintf(stderr, "extra thread running...\n");
+    /**
+     * pthread with process contention
+     **/
+    args->done = false;
+    if (pthread_create(&busy_looper, NULL, busy_loop, args))
+        perror("pthread_create");
+    else
+        fprintf(stderr, "extra thread running...\n");
 
-        run_rdtsc_trials("pthread");
+    run_rdtsc_trials("pthread");
 
-        args->done = true;
-        pthread_join(busy_looper, NULL);
+    args->done = true;
+    pthread_join(busy_looper, NULL);
 
-        /**
-         * no pthread
-         **/
-        run_rdtsc_trials("no_pthread");
-    }
+    /**
+     * no pthread
+     **/
+    run_rdtsc_trials("no_pthread");
 
     return 0;
 }
