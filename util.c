@@ -8,19 +8,22 @@
 #include <stdbool.h>
 #include "util.h"
 
-#define BUF_SIZE (1<<10)
+#define BUF_SIZE (1<<28)
 
 /**
  * Put the system into a known state by reading a file into memory
  **/
-void setup_system(char **filenames) {
-  char buffer[BUF_SIZE];
+void setup_system(int num_files, char **filenames) {
+  char *buffer;
   int fildes;
 
   //EXIT_ON_FAIL(fstat(fildes, &f_stat), "fstat");
+  
+  buffer = malloc(BUF_SIZE);
+  EXIT_ON_FAIL(buffer == NULL, "malloc");
 
   /* read in the whole file to bring it into cache */
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < num_files; i++) {
       EXIT_ON_FAIL((fildes = open(filenames[i], O_RDONLY)) == -1, "open");
       while (true) {
         ssize_t read_size = read(fildes, buffer, BUF_SIZE);

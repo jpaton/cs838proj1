@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     ) {
         buffer = malloc(read_size);
         for (int trial = 0; trial < NUM_TRIALS; trial++) {
-            setup_system(setup_filenames); // put system into known state
+            setup_system(argc - 2, setup_filenames); // put system into known state
             EXIT_ON_FAIL((fildes = open(test_filename, O_RDONLY)) == -1, "open");
             EXIT_ON_FAIL(clock_gettime(CLOCK_MONOTONIC, &times.start), "clock_gettime");
             bytes_read = pread(fildes, buffer, read_size, random_offset(file_size, read_size));
