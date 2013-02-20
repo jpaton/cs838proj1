@@ -5,4 +5,6 @@
 
 void setup_system(char **);
 
+int get_clock_frequency(void);
+
 #endif

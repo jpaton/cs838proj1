@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/processor.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -16,7 +17,6 @@ void setup_system(char **filenames) {
   char buffer[BUF_SIZE];
   int fildes;
 
-
   //EXIT_ON_FAIL(fstat(fildes, &f_stat), "fstat");
 
   /* read in the whole file to bring it into cache */
@@ -30,5 +30,11 @@ void setup_system(char **filenames) {
       }
       EXIT_ON_FAIL(close(fildes), "close");
   }
+}
 
+int get_clock_frequency(void) {
+    processorid_t cpuid = getcpuid();
+    processor_info_t info;
+    EXIT_ON_FAIL(processor_info(cpuid, &info), "processor_info");
+    return info.pi_clock;
 }

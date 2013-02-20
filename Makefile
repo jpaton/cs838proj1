@@ -10,8 +10,8 @@ all: $(OBJECTS) $(EXECUTABLES)
 random_read: random_read.o util.o time.o
 	$(CC) $(LDFLAGS) time.o util.o random_read.o -o $@
 
-timetest: timetest.o
-	$(CC) $(LDFLAGS) timetest.o -o $@
+timetest: timetest.o util.o
+	$(CC) $(LDFLAGS) util.o timetest.o -o $@
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@

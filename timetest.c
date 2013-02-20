@@ -11,7 +11,10 @@
 #include <stdbool.h>
 #include <time.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/processor.h>
 #include "rdtsc.h"
+#include "util.h"
 
 #ifndef __APPLE__
 int clock_gettime(clockid_t, struct timespec *tp);
@@ -24,7 +27,7 @@ int clock_getres(clockid_t, struct timespec *tp);
 #define MAX_SLEEP_TIME 60
 #define MIN_SLEEP_TIME 0
 #define SLEEP_TIME_STEP 5
-#define FREQ 2533000000l
+#define MHZ_TO_HZ 1000000l
 
 /**
  * A list of all the clocks to test with clock_gettime
@@ -99,7 +102,7 @@ void run_trials(char *extra) {
 }
 #endif
 
-void run_rdtsc_trials(char *extra) {
+void run_rdtsc_trials(char *extra, unsigned long cpu_freq) {
     unsigned long long start, end;
     double diff, time;
 
@@ -109,7 +112,7 @@ void run_rdtsc_trials(char *extra) {
             sleep(sleep_time);
             end = rdtsc();
             diff = (double) (end - start);
-            time = diff / FREQ;
+            time = diff / cpu_freq;
             printf("%d,%d,%s,%f", trial, sleep_time, "rdtsc", time);
             printf(",%s\n", extra);
             fflush(stdout);
@@ -120,10 +123,14 @@ void run_rdtsc_trials(char *extra) {
 int main(int argc, char **argv) {
     pthread_t busy_looper;
     struct busy_loop_arg *args;
+    unsigned long cpu_freq;
 
 #ifndef __APPLE__
     print_resolutions();
 #endif
+
+    cpu_freq = get_clock_frequency() * MHZ_TO_HZ;
+    fprintf(stderr, "Using CPU frequency of %lu\n", cpu_freq);
 
     args = malloc(sizeof(struct busy_loop_arg));
     pthread_cond_init(&args->exiting, NULL);
@@ -136,7 +143,7 @@ int main(int argc, char **argv) {
     else
         fprintf(stderr, "extra thread running...\n");
 
-    run_rdtsc_trials("pthread");
+    run_rdtsc_trials("pthread", cpu_freq);
 
     args->done = true;
     pthread_join(busy_looper, NULL);
@@ -144,7 +151,7 @@ int main(int argc, char **argv) {
     /**
      * no pthread
      **/
-    run_rdtsc_trials("no_pthread");
+    run_rdtsc_trials("no_pthread", cpu_freq);
 
     return 0;
 }
