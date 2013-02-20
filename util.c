@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "util.h"
 
-#define BUF_SIZE 4096
+#define BUF_SIZE (1<<10)
 
 /**
  * Put the system into a known state by reading a file into memory

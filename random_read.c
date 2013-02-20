@@ -29,7 +29,7 @@ extern int subtract_timespec(struct timespec *, struct timespec *, struct timesp
 extern void print_time(struct timespec *);
 
 void print_usage(char *cmd) {
-    fprintf(stderr, "Usage: %s <big file 1> <big file 2>\n", cmd);
+    fprintf(stderr, "Usage: %s <big file for testing> <setup file 1> [<setup file 2> ...]\n", cmd);
 }
 
 int random_offset(size_t file_size, int buf_size) {
@@ -48,9 +48,7 @@ int main(int argc, char **argv) {
     } times;
     struct timespec time_diff;
 
-    printf("%d\n", sizeof(long));
-
-    if (argc != 6) {
+    if (argc < 3) {
         print_usage(argv[0]);
         return 0;
     }

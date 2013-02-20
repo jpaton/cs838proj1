@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -Wall -std=c99 -lpthread
+CFLAGS=-c -Wall -std=c99 -lpthread -D_FILE_OFFSET_BITS=64
 LDFLAGS=-mt
 SOURCES=timetest.c random_read.c util.c
 OBJECTS=$(SOURCES:.c=.o)
