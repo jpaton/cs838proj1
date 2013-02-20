@@ -27,7 +27,6 @@ int clock_getres(clockid_t, struct timespec *tp);
 #define MAX_SLEEP_TIME 60
 #define MIN_SLEEP_TIME 0
 #define SLEEP_TIME_STEP 5
-#define MHZ_TO_HZ 1000000l
 
 /**
  * A list of all the clocks to test with clock_gettime
