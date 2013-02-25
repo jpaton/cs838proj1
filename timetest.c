@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     if (!invariant_tsc()) 
         fprintf(stderr, "WARNING: TSC is not invariant!!!\n");
     else
-        fprintf(stderr, "TSC is invariant.\nt");
+        fprintf(stderr, "TSC is invariant.\n");
 
     cpu_freq = get_clock_frequency() * MHZ_TO_HZ;
     fprintf(stderr, "Using CPU frequency of %lu\n", cpu_freq);
