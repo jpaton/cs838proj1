@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -Wall -std=c99 -lpthread -D_FILE_OFFSET_BITS=64 -g
+CFLAGS=-c -Wall -std=c99 -lpthread -D_FILE_OFFSET_BITS=64
 LDFLAGS=
 SOURCES=timetest.c random_read.c util.c
 OBJECTS=$(SOURCES:.c=.o)
@@ -18,6 +18,9 @@ timetest: timetest.o util.o
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@
+
+copy:
+	cp $(EXECUTABLES) /Volumes/DISK_IMG/
 
 clean:
 	rm *.o

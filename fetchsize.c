@@ -14,7 +14,7 @@
 #define MAX_INITIAL_READ_SIZE (1<<14)
 #define MIN_INITIAL_READ_SIZE BLOCK_SIZE
 #define MAX_PREFETCH_HYPOTHESIS (1024)  // in blocks
-#define MIN_PREFETCH_HYPOTHESIS (1)
+#define MIN_PREFETCH_HYPOTHESIS (512)
 #define NUM_TRIALS 10
 
 void print_usage(char *cmd) {
@@ -49,22 +49,23 @@ int main(int argc, char **argv) {
                 initial_read_size <= MAX_INITIAL_READ_SIZE; 
                 initial_read_size += BLOCK_SIZE
         ) {
-            setup_system(argc - 2, setup_filenames);
             for (
                 int prefetch_hypothesis = MIN_PREFETCH_HYPOTHESIS;
                 prefetch_hypothesis <= MAX_PREFETCH_HYPOTHESIS;
                 prefetch_hypothesis++
             ) {
+                setup_system(argc - 2, setup_filenames);
                 buffer = malloc(MAX(initial_read_size, prefetch_hypothesis));
                 EXIT_ON_FAIL((fildes = open(test_filename, O_RDONLY)) == -1, "open");
                 EXIT_ON_FAIL(read(fildes, buffer, initial_read_size) < 0, "read");
                 start = rdtsc();
-                int bytes_read = pread(fildes, buffer, BLOCK_SIZE, prefetch_hypothesis);
+                int bytes_read = pread(fildes, buffer, 1, prefetch_hypothesis * BLOCK_SIZE);
                 end = rdtsc();
                 EXIT_ON_FAIL(bytes_read == -1, "pread");
                 time = ((double)(end - start)) / cpu_freq;
                 printf("%d,%d,%d,%f", trial, initial_read_size, prefetch_hypothesis, time);
                 printf("\n");
+                fflush(stdout);
                 free(buffer);
                 EXIT_ON_FAIL(close(fildes), "close");
             }
