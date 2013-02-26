@@ -12,7 +12,6 @@
 #include <time.h>
 #include <pthread.h>
 #include <sys/types.h>
-#include <sys/processor.h>
 #include "rdtsc.h"
 #include "util.h"
 

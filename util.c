@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#if defined(__sun) && defined(__SVR4)
 #include <sys/processor.h>
+#endif
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -36,9 +38,15 @@ void setup_system(int num_files, char **filenames) {
   free(buffer);
 }
 
+#if defined(__sun) && defined(__SVR4)
 int get_clock_frequency(void) {
     processorid_t cpuid = getcpuid();
     processor_info_t info;
     EXIT_ON_FAIL(processor_info(cpuid, &info), "processor_info");
     return info.pi_clock;
 }
+#else
+int get_clock_frequency(void) {
+    return 800;
+}
+#endif

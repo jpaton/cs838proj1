@@ -16,4 +16,3 @@ extern int subtract_timespec(struct timespec *ts1, struct timespec *ts2, struct 
 extern void print_time(struct timespec *tp) {
     printf("%lu s,%lu ns", tp->tv_sec, tp->tv_nsec);
 }
-
