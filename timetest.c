@@ -15,25 +15,12 @@
 #include "rdtsc.h"
 #include "util.h"
 
-#ifndef __APPLE__
-int clock_gettime(clockid_t, struct timespec *tp);
-int clock_getres(clockid_t, struct timespec *tp);
-#endif
-
 #define USEC_IN_SEC (1000000)
 #define NSEC_IN_SEC (1000000000)
 #define NUM_TRIALS 10
 #define MAX_SLEEP_TIME 60
 #define MIN_SLEEP_TIME 0
 #define SLEEP_TIME_STEP 5
-
-/**
- * A list of all the clocks to test with clock_gettime
- **/
-#ifndef __APPLE__
-const clockid_t clocks[] = {CLOCK_REALTIME, CLOCK_MONOTONIC};
-#define NUM_CLOCKS 2 /* size of the clocks array */
-#endif
 
 int subtract_timespec(struct timespec *ts1, struct timespec *ts2, struct timespec *result) {
     result->tv_sec = ts1->tv_sec - ts2->tv_sec;
@@ -63,43 +50,6 @@ void print_time(struct timespec *tp) {
     printf("%lu s,%lu ns", tp->tv_sec, tp->tv_nsec);
 }
 
-#ifndef __APPLE__
-void print_resolutions() {
-    struct timespec tp;
-    for (int clock_num = 0; clock_num < NUM_CLOCKS; clock_num++) {
-        if (clock_getres(clocks[clock_num], &tp))
-            perror("clock_getres");
-        fprintf(stderr, "clock res for %d: %lu s, %lu ns\n", clocks[clock_num], tp.tv_sec, tp.tv_nsec);
-    }
-}
-#endif
-
-#ifndef __APPLE__
-void run_trials(char *extra) {
-    struct {
-        struct timespec start;
-        struct timespec end;
-    } highres_times;
-    struct timespec highres_diff;
-
-    for (int clock_num = 0; clock_num < NUM_CLOCKS; clock_num++) {
-        for (int sleep_time = MIN_SLEEP_TIME; sleep_time <= MAX_SLEEP_TIME; sleep_time += SLEEP_TIME_STEP) {
-            for (int trial = 0; trial < NUM_TRIALS; trial++) {
-                if (clock_gettime(clocks[clock_num], &highres_times.start))
-                    perror("clock_gettime");
-                sleep(sleep_time);
-                if (clock_gettime(clocks[clock_num], &highres_times.end))
-                    perror("clock_gettime");
-                subtract_timespec(&highres_times.end, &highres_times.start, &highres_diff);
-                printf("%d,%d,%d,", trial, sleep_time, clocks[clock_num]);
-                print_time(&highres_diff);
-                printf(",%s\n", extra);
-            }
-        }
-    }
-}
-#endif
-
 void run_rdtsc_trials(char *extra, unsigned long cpu_freq) {
     unsigned long long start, end;
     double diff, time;
@@ -123,9 +73,10 @@ int main(int argc, char **argv) {
     struct busy_loop_arg *args;
     unsigned long cpu_freq;
 
-#ifndef __APPLE__
-    print_resolutions();
-#endif
+    if (!invariant_tsc()) 
+        fprintf(stderr, "WARNING: TSC is not invariant!!!\n");
+    else
+        fprintf(stderr, "TSC is invariant.\nt");
 
     cpu_freq = get_clock_frequency() * MHZ_TO_HZ;
     fprintf(stderr, "Using CPU frequency of %lu\n", cpu_freq);

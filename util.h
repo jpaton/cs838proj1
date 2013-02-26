@@ -7,6 +7,6 @@
 
 void setup_system(int, char **);
 
-int get_clock_frequency(void);
+long get_clock_frequency(void);
 
 #endif

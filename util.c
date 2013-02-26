@@ -39,14 +39,14 @@ void setup_system(int num_files, char **filenames) {
 }
 
 #if defined(__sun) && defined(__SVR4)
-int get_clock_frequency(void) {
+long get_clock_frequency(void) {
     processorid_t cpuid = getcpuid();
     processor_info_t info;
     EXIT_ON_FAIL(processor_info(cpuid, &info), "processor_info");
     return info.pi_clock;
 }
 #else
-int get_clock_frequency(void) {
-    return 800;
+long get_clock_frequency(void) {
+    return 3400l;
 }
 #endif
