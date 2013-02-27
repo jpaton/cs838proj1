@@ -48,7 +48,7 @@ void register_offset(struct offset_tracker *tracker, unsigned long offset) {
     tracker->offsets[tracker->len_offsets++] = offset;
 }
 
-unsigned long random_offset(size_t file_size, int buf_size, struct offset_tracker *tracker, int read_size) {
+unsigned long long random_offset(size_t file_size, int buf_size, struct offset_tracker *tracker, int read_size) {
     unsigned long offset;
     while(already_used(tracker, (offset = lrand48() % file_size), read_size))
         fprintf(stderr, "rejected %lu\n", offset);
