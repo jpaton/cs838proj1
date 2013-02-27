@@ -1,23 +1,23 @@
 CC=gcc
-CFLAGS=-c -Wall -std=c99 -D_FILE_OFFSET_BITS=64 -g
+CFLAGS=-c -Wall -D_FILE_OFFSET_BITS=64
 LDFLAGS=-pthread
-SOURCES=util.c prefetch.c
+SOURCES=util.c prefetch.c idealbuffersize.c filecachesize.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLES=prefetch
+EXECUTABLES=prefetch idealbuffersize filecachesize
 
 all: $(OBJECTS) $(EXECUTABLES)
+
+dirs:
+	mkdir -p $(EXECUTABLES)
 	
-random_read: random_read.o util.o time.o
-	$(CC) $(LDFLAGS) time.o util.o random_read.o -o $@
+idealbuffersize: util.o idealbuffersize.o dirs
+	$(CC) $(LDFLAGS) util.o idealbuffersize.o -o $@/$@
 
-fetchsize: fetchsize.o util.o time.o
-	$(CC) $(LDFLAGS) time.o util.o fetchsize.o -o $@
+filecachesize: util.o filecachesize.o dirs
+	$(CC) $(LDFLAGS) util.o filecachesize.o -o $@/$@
 
-timetest: timetest.o util.o
-	$(CC) $(LDFLAGS) util.o timetest.o -o $@
-
-prefetch: util.o prefetch.o
-	$(CC) $(LDFLAGS) util.o prefetch.o -o $@
+prefetch: util.o prefetch.o dirs
+	$(CC) $(LDFLAGS) util.o prefetch.o -o $@/$@
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@

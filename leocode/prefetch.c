@@ -22,10 +22,10 @@ unsigned long getrandom(unsigned long max){
 
 void run_experiment(FILE* file,char* buffer, unsigned long buffer_size,unsigned long max_offset){
 	rewind(file);
-	int ret;
+	int ret, i;
 	unsigned long start,end,elapsed_ticks;
 	printf("Buffer_size,Iteration\tTime\n");
-	for(int i=1;i<=1000;i++)
+	for(i=1;i<=1000;i++)
 	{
 		start = getticks();
 		ret = fread(buffer,buffer_size,1,file);
@@ -60,4 +60,5 @@ int main(int argc, char **argv){
 		free(buffer);
 		srand(time(NULL)%INT_MAX);
 	}
+    return 0;
 }

@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <errno.h>
 #include "util.h"
 
 #define BUF_SIZE (1<<28)
@@ -18,6 +19,7 @@
 void flushcache(int num_files, char **filenames) {
   char *buffer;
   int fildes;
+  int i;
 
   //EXIT_ON_FAIL(fstat(fildes, &f_stat), "fstat");
   
@@ -25,11 +27,16 @@ void flushcache(int num_files, char **filenames) {
   EXIT_ON_FAIL(buffer == NULL, "malloc");
 
   /* read in the whole file to bring it into cache */
-  for (int i = 0; i < num_files; i++) {
+  for (i = 0; i < num_files; i++) {
       EXIT_ON_FAIL((fildes = open(filenames[i], O_RDONLY)) == -1, "open");
       while (true) {
         ssize_t read_size = read(fildes, buffer, BUF_SIZE);
-        EXIT_ON_FAIL(read_size == -1, "read");
+        if (read_size == -1) {
+            if (errno == EIO)
+                fprintf(stderr, "I/O error\n");
+            else
+                perror("read");
+        }
         buffer[0] = buffer[1] + buffer[2]; //make sure nothing is optimized out or some BS
         if (read_size == 0) break;
       }

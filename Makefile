@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-c -Wall -std=c99 -D_FILE_OFFSET_BITS=64
 LDFLAGS=-pthread
-SOURCES=timetest.c util.c
+SOURCES=timetest.c util.c random_read.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLES=timetest fetchsize
+EXECUTABLES=timetest fetchsize random_read
 
 all: $(OBJECTS) $(EXECUTABLES)
 	
