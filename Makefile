@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-c -Wall -std=c99 -D_FILE_OFFSET_BITS=64
 LDFLAGS=-pthread
-SOURCES=timetest.c util.c random_read.c cache_size.c
+SOURCES=timetest.c util.c random_read.c cache_size.c indirection.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLES=timetest fetchsize random_read cache_size
+EXECUTABLES=timetest fetchsize random_read cache_size indirection
 
 all: $(OBJECTS) $(EXECUTABLES)
 	
@@ -15,6 +15,9 @@ fetchsize: fetchsize.o util.o time.o
 
 cache_size: cache_size.o util.o
 	$(CC) $(LDFLAGS) util.o cache_size.o -o $@
+
+indirection: indirection.o util.o
+	$(CC) $(LDFLAGS) util.o indirection.o -o $@
 
 timetest: timetest.o util.o
 	$(CC) $(LDFLAGS) util.o timetest.o -o $@
