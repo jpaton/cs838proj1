@@ -40,7 +40,7 @@ void run_experiment(FILE* file,char* buffer, unsigned long buffer_size,unsigned 
 	}
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
 
 	unsigned long max_offset=671088640 / 5; // No: of 16 Bytes in 10 GB
 	unsigned long buffer_size=16; // Initial buffer size
