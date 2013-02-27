@@ -30,7 +30,12 @@ void setup_system(int num_files, char **filenames) {
       EXIT_ON_FAIL((fildes = open(filenames[i], O_RDONLY)) == -1, "open");
       while (true) {
         ssize_t read_size = read(fildes, buffer, BUF_SIZE);
-        EXIT_ON_FAIL(read_size == -1 && errno != EIO, "read")
+        if (read_size == -1) {
+            if (errno == EIO)
+                perror("read");
+            else
+                EXIT_ON_FAIL(true, "read");
+        }
         buffer[0] = buffer[1] + buffer[2]; //make sure nothing is optimized out or some BS
         if (read_size == 0) break;
       }

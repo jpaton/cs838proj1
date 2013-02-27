@@ -12,13 +12,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <errno.h>
 #include <time.h>
 #include "util.h"
 #include "rdtsc.h"
 
 #define READ_SIZE_STEP 1024
-#define MIN_READ_SIZE READ_SIZE_STEP
-#define MAX_READ_SIZE (128 * 1024)
+//#define MIN_READ_SIZE READ_SIZE_STEP
+//#define MIN_READ_SIZE (8192)
+#define MIN_READ_SIZE (30720 + 1024)
+#define MAX_READ_SIZE (256 * 1024)
 //#define MAX_READ_SIZE 1024
 #define NUM_TRIALS 1000
 #define FETCH_SIZE (128 * 1024)
@@ -48,9 +51,9 @@ void register_offset(struct offset_tracker *tracker, unsigned long offset) {
     tracker->offsets[tracker->len_offsets++] = offset;
 }
 
-unsigned long random_offset(size_t file_size, int buf_size, struct offset_tracker *tracker, int read_size) {
-    unsigned long offset;
-    while(already_used(tracker, (offset = lrand48() % file_size), read_size))
+unsigned long long random_offset(size_t file_size, int buf_size, struct offset_tracker *tracker, int read_size) {
+    unsigned long long offset;
+    while(already_used(tracker, (offset = lrand48() % (file_size - read_size)), read_size))
         fprintf(stderr, "rejected %lu\n", offset);
     register_offset(tracker, offset);
     return offset;
@@ -86,13 +89,14 @@ int main(int argc, char **argv) {
     ) {
         buffer = malloc(read_size);
         setup_system(argc - 2, setup_filenames); // put system into known state
+        fprintf(stderr, "system set up\n");
         init_offset_tracker(&tracker);
         for (int trial = 0; trial < NUM_TRIALS; trial++) {
             EXIT_ON_FAIL((fildes = open(test_filename, O_RDONLY)) == -1, "open");
             start = rdtsc();
             bytes_read = pread(fildes, buffer, read_size, random_offset(file_size, read_size, &tracker, read_size));
             end = rdtsc();
-            EXIT_ON_FAIL(bytes_read == -1, "pread");
+            EXIT_ON_FAIL(bytes_read == -1 && errno != EIO, "pread");
             EXIT_ON_FAIL(bytes_read != read_size, "read too small");
             EXIT_ON_FAIL(close(fildes), "close");
             printf("%d,%d,%llu\n", trial, read_size, end - start);
