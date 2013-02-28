@@ -13,7 +13,10 @@
 
 #define BLOCK_SIZE (128 * 1<<10) // ZFS default block size is apparently 128k
 #define FILE_SIZE (1<<30) // in bytes
-#define NUM_TRIALS (100)
+#define NUM_TRIALS (10)
+
+double drand48(void);
+void srand48(long);
 
 void fill_buffer(char *buffer) {
     for (int i = 0; i < BLOCK_SIZE; i++) 
@@ -25,7 +28,7 @@ int main(int argc, char **argv) {
     int fildes;
     unsigned long long start, end;
     char buffer[BLOCK_SIZE];
-    ssize_t written;
+    ssize_t written = BLOCK_SIZE;
 
     srand48(time(NULL));
 
@@ -48,6 +51,7 @@ int main(int argc, char **argv) {
                 exit(-1);
             }
             printf("%d,%llu,%llu\n", trial, bytes_written, end - start);
+            fflush(stdout);
             bytes_written += BLOCK_SIZE;
         }
         EXIT_ON_FAIL(close(fildes), "close");

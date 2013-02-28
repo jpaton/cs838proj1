@@ -16,6 +16,9 @@
 #define CACHE_SIZE_STEP (64 * 1024 * 1024) // 64 MB
 #define NUM_TRIALS (10)
 
+double drand48(void);
+void srand48(long);
+
 void get_into_cache(int fildes, unsigned long long size) {
     char buffer[BUF_SIZE];
     unsigned long long read_so_far = 0; // how many bytes have been read
@@ -32,10 +35,6 @@ void get_into_cache(int fildes, unsigned long long size) {
     }
 }
 
-unsigned long long random_offset(size_t file_size, int buf_size) {
-    return lrand48() % (file_size - buf_size);
-}
-
 int main(int argc, char **argv) {
     char *filename = argv[1];
     int fildes;
@@ -47,6 +46,8 @@ int main(int argc, char **argv) {
     for (unsigned long long cache_size_hypo = MIN_CACHE_SIZE;
             cache_size_hypo <= MAX_CACHE_SIZE;
             cache_size_hypo += CACHE_SIZE_STEP) {
+        fprintf(stderr, "testing %llu\n", cache_size_hypo);
+        lseek(fildes, 0, SEEK_SET);
         get_into_cache(fildes, cache_size_hypo);
         for (int trial = 0; trial < NUM_TRIALS; trial++) {
             lseek(fildes, 0, SEEK_SET);

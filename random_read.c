@@ -17,17 +17,18 @@
 #include "util.h"
 #include "rdtsc.h"
 
-#define READ_SIZE_STEP 1024
-//#define MIN_READ_SIZE READ_SIZE_STEP
-//#define MIN_READ_SIZE (8192)
-#define MIN_READ_SIZE (30720 + 1024)
-#define MAX_READ_SIZE (256 * 1024)
+#define READ_SIZE_STEP (128 * 1024)
+#define MIN_READ_SIZE READ_SIZE_STEP
+#define MAX_READ_SIZE (256 * 128 * 1024)
 //#define MAX_READ_SIZE 1024
 #define NUM_TRIALS 1000
 #define FETCH_SIZE (128 * 1024)
 
+double drand48(void);
+void srand48(long);
+
 struct offset_tracker {
-    unsigned long offsets[NUM_TRIALS];
+    unsigned long long offsets[NUM_TRIALS];
     int len_offsets;
 };
 
@@ -39,7 +40,7 @@ void init_offset_tracker(struct offset_tracker *tracker) {
     tracker->len_offsets = 0;
 }
 
-bool already_used(struct offset_tracker *tracker, unsigned long offset, int read_size) {
+bool already_used(struct offset_tracker *tracker, unsigned long long offset, int read_size) {
     for (int i = 0; i < tracker->len_offsets; i++) {
         if (abs(tracker->offsets[i] - offset) <= MAX(read_size, FETCH_SIZE))
             return true;
@@ -53,8 +54,7 @@ void register_offset(struct offset_tracker *tracker, unsigned long offset) {
 
 unsigned long long random_offset(size_t file_size, int buf_size, struct offset_tracker *tracker, int read_size) {
     unsigned long long offset;
-    while(already_used(tracker, (offset = lrand48() % (file_size - read_size)), read_size))
-        fprintf(stderr, "rejected %lu\n", offset);
+    while(already_used(tracker, (offset = drand48() * ((unsigned long long) file_size - read_size - 1)), read_size));
     register_offset(tracker, offset);
     return offset;
 }
@@ -88,20 +88,24 @@ int main(int argc, char **argv) {
             read_size += READ_SIZE_STEP
     ) {
         buffer = malloc(read_size);
-        setup_system(argc - 2, setup_filenames); // put system into known state
+        //setup_system(argc - 2, setup_filenames); // put system into known state
         fprintf(stderr, "system set up\n");
         init_offset_tracker(&tracker);
+        EXIT_ON_FAIL((fildes = open(test_filename, O_RDONLY)) == -1, "open");
         for (int trial = 0; trial < NUM_TRIALS; trial++) {
-            EXIT_ON_FAIL((fildes = open(test_filename, O_RDONLY)) == -1, "open");
+            unsigned long long offset = random_offset(file_size, read_size, &tracker, read_size);
             start = rdtsc();
-            bytes_read = pread(fildes, buffer, read_size, random_offset(file_size, read_size, &tracker, read_size));
+            bytes_read = pread(fildes, buffer, read_size, offset);
             end = rdtsc();
             EXIT_ON_FAIL(bytes_read == -1 && errno != EIO, "pread");
-            EXIT_ON_FAIL(bytes_read != read_size, "read too small");
-            EXIT_ON_FAIL(close(fildes), "close");
-            printf("%d,%d,%llu\n", trial, read_size, end - start);
+            if (bytes_read != read_size) {
+                trial--;
+                continue;
+            }
+            printf("%d,%d,%llu,%llu\n", trial, read_size, offset, end - start);
             fflush(stdout);
         }
+        EXIT_ON_FAIL(close(fildes), "close");
         free(buffer);
     }
 
