@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     cpu_freq = get_clock_frequency() * MHZ_TO_HZ;
 
     buffer = malloc(INITIAL_READ_SIZE);
-    for (int trial = 26; trial < NUM_TRIALS; trial++) {
+    for (int trial = 0; trial < NUM_TRIALS; trial++) {
         setup_system(argc - 2, setup_filenames);
         EXIT_ON_FAIL((fildes = open(test_filename, O_RDONLY)) == -1, "open");
         EXIT_ON_FAIL(read(fildes, buffer, INITIAL_READ_SIZE) < 0, "read");
